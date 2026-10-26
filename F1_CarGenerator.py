@@ -27,3 +27,17 @@ def make_carbody(name, position, size):
     cmds.move(position[0], position[1], position[2], box)
 
     return box
+
+
+def make_wheel(name, position):
+    wheel = cmds.polyCylinder(
+        name=name,
+        radius=0.5,
+        height=0.3,
+        axis=(0, 0, 1)
+    )[0]
+
+    cmds.move(position[0], position[1], position[2], wheel)
+
+    return wheel
+
