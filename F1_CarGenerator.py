@@ -14,3 +14,16 @@ from pyside6 import QtWidgets
 # make sure the cars can be generated and dont delete the car group before them
 # Give the cars names, F1_Car_01, 02, 03, etc.
 # Run generator
+
+
+def make_carbody(name, position, size):
+    box = cmds.polyCube(
+        name=name,
+        width=size[0],
+        height=size[1],
+        depth=size[2],
+    )[0]
+
+    cmds.move(position[0], position[1], position[2], box)
+
+    return box
