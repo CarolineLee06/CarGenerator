@@ -1,6 +1,6 @@
 import maya.cmds as cmds
 import random
-from pyside6 import QtWidgets
+from PySide2 import QtWidgets, QtCore
 
 # create a GUI window that asks for imput from the user, generate car and
 # assign random color, make it a button.
@@ -15,29 +15,32 @@ from pyside6 import QtWidgets
 # Give the cars names, F1_Car_01, 02, 03, etc.
 # Run generator
 
+class F1Car:
+    def __init__(self, body_length=4.0, body_width=1.5,
+                 body_height=0.5, wheel_radius=0.5):
+        self.body_length = body_length
+        self.body_width = body_width
+        self.body_height = body_height
+        self.wheel_radius = wheel_radius
+        self.parts = []
 
-def make_carbody(name, position, size):
-    box = cmds.polyCube(
-        name=name,
-        width=size[0],
-        height=size[1],
-        depth=size[2],
-    )[0]
+    def create(self):
+        number = 1 
+        while cmds.objExists("F1Car_" + str(number)):
+            number += 1
+        self.car_number = number
+        self.parts = []
 
-    cmds.move(position[0], position[1], position[2], box)
+        self.create_body()
+        self.create_cockpit()
+        self.create_front_wing()
+        self.create_rear_wing()
+        self.create_wheels()
 
-    return box
-
-
-def make_wheel(name, position):
-    wheel = cmds.polyCylinder(
-        name=name,
-        radius=0.5,
-        height=0.3,
-        axis=(0, 0, 1)
-    )[0]
-
-    cmds.move(position[0], position[1], position[2], wheel)
-
-    return wheel
-
+        self.car_group = cmds.group(
+            self.parts, 
+            name="F1Car_" + str(self.car_number)
+        )
+        self.color_body()
+        cmds.select(self.car_group)
+        print("Created F1Car_" + str(self.car_number))
