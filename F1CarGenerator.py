@@ -254,7 +254,6 @@ class F1CarGeneratorGUI(QtWidgets.QDialog):
 
     @QtCore.Slot()
     def randomize_color(self):
-        print("BUTTON FUNCTION STARTED")
         body = cmds.ls(selection=True, long=True)[0]
         shape = cmds.listRelatives(body, shapes=True, fullPath=True)[0]
         sg = cmds.listConnections(shape, type="shadingEngine")[0]
@@ -262,10 +261,8 @@ class F1CarGeneratorGUI(QtWidgets.QDialog):
             sg + ".surfaceShader", source=True,
             destination=False
         )[0]
-        print("CHANGING MATERIAL:", material)
         cmds.setAttr(
             material + ".color",
             0, 1, 0,
             type="double3"
         )
-        print("COLOR CHANGED TO GREEN")
