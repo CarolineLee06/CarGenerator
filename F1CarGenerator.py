@@ -42,16 +42,20 @@ class F1Car:
 
     def create_body(self):
         name = "carBody_" + str(self.number)
-        body = cmds.polyCube(name=name, w=self.width,
-                             h=self.height, d=self.length)[0]
+        body = cmds.polyCube(
+            name=name, w=self.width,
+            h=self.height, d=self.length
+        )[0]
         y = self.wheel_radius + self.height / 2
         cmds.move(0, y, 0, body)
         self.parts.append(body)
 
     def create_cockpit(self):
         name = "cockpit_" + str(self.number)
-        cockpit = cmds.polyCube(name=name, w=self.width * 0.45,
-                                h=self.height * 0.8, d=self.length * 0.3)[0]
+        cockpit = cmds.polyCube(
+            name=name, w=self.width * 0.45,
+            h=self.height * 0.8, d=self.length * 0.3
+        )[0]
         y = self.wheel_radius + self.height * 1.1
         cmds.move(0, y, 0, cockpit)
         self.parts.append(cockpit)
@@ -67,7 +71,9 @@ class F1Car:
     def create_wing(self, name, z, y):
         name = name + "_" + str(self.number)
         width = self.width * self.wing_width
-        wing = cmds.polyCube(name=name, w=width, h=0.12, d=0.25)[0]
+        wing = cmds.polyCube(
+            name=name, w=width, h=0.12, d=0.25
+        )[0]
         cmds.move(0, y, z, wing)
         self.parts.append(wing)
 
@@ -78,9 +84,13 @@ class F1Car:
 
     def create_wheel(self, i, position):
         name = "wheel" + str(i + 1) + "_" + str(self.number)
-        x = position[0] * (self.width / 2 + self.wheel_radius * 0.4)
+        x = position[0] * (
+            self.width / 2 + self.wheel_radius * 0.4
+        )
         z = position[1] * self.length * 0.3
-        wheel = cmds.polyCylinder(name=name, r=self.wheel_radius, h=0.25)[0]
+        wheel = cmds.polyCylinder(
+            name=name, r=self.wheel_radius, h=0.25
+        )[0]
         cmds.rotate(0, 0, 90, wheel)
         cmds.move(x, self.wheel_radius, z, wheel)
         self.parts.append(wheel)
@@ -91,12 +101,18 @@ class F1Car:
 
     def create_material(self):
         number = str(self.number)
-        material = cmds.shadingNode("lambert", asShader=True,
-                                    name="carMaterial_" + number)
-        shading_group = cmds.sets(renderable=True, noSurfaceShader=True,
-                                  empty=True, name="carSG_" + number)
-        cmds.connectAttr(material + ".outColor",
-                         shading_group + ".surfaceShader", force=True)
+        material = cmds.shadingNode(
+            "lambert", asShader=True,
+            name="carMaterial_" + number
+        )
+        shading_group = cmds.sets(
+            renderable=True, noSurfaceShader=True,
+            empty=True, name="carSG_" + number
+        )
+        cmds.connectAttr(
+            material + ".outColor",
+            shading_group + ".surfaceShader", force=True
+        )
         self.random_color(material)
         body = "carBody_" + number
         cmds.sets(body, edit=True, forceElement=shading_group)
@@ -145,6 +161,7 @@ class F1CarGeneratorGUI(QtWidgets.QDialog):
         self._body_width_ui()
         self._body_height_ui()
         self._wing_width_ui()
+        self._wheel_radius_ui()
         self._group_name_ui()
         self.main_lay.addLayout(self.form_lay)
 
@@ -172,6 +189,19 @@ class F1CarGeneratorGUI(QtWidgets.QDialog):
         self.wing_dspnbx.setValue(self.f1_generator.wing_width)
         self.form_lay.addRow("Wing Width", self.wing_dspnbx)
 
+    def _wheel_radius_ui(self):
+        self.wheel_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.wheel_slider.setRange(30, 80)
+        self.wheel_slider.setValue(
+            int(self.f1_generator.wheel_radius * 100)
+        )
+        self.wheel_label = QtWidgets.QLabel("0.50")
+        self.wheel_slider.valueChanged.connect(
+            self.update_wheel_label
+        )
+        self.form_lay.addRow("Wheel Radius", self.wheel_slider)
+        self.form_lay.addRow("Selected Radius", self.wheel_label)
+
     def _group_name_ui(self):
         self.enablegrpname_cb = QtWidgets.QCheckBox()
         self.enablegrpname_cb.setChecked(False)
@@ -191,6 +221,10 @@ class F1CarGeneratorGUI(QtWidgets.QDialog):
         enabled = self.enablegrpname_cb.isChecked()
         self.grpname_le.setEnabled(enabled)
 
+    @QtCore.Slot(int)
+    def update_wheel_label(self, value):
+        self.wheel_label.setText("{:.2f}".format(value / 100))
+
     def get_group_name(self):
         if self.enablegrpname_cb.isChecked():
             name = self.grpname_le.text().strip()
@@ -204,6 +238,9 @@ class F1CarGeneratorGUI(QtWidgets.QDialog):
         self.f1_generator.width = self.width_dspnbx.value()
         self.f1_generator.height = self.height_dspnbx.value()
         self.f1_generator.wing_width = self.wing_dspnbx.value()
+        self.f1_generator.wheel_radius = (
+            self.wheel_slider.value() / 100
+        )
         self.f1_generator.grp_name = self.get_group_name()
         self.f1_generator.create()
 
