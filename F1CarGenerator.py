@@ -118,22 +118,32 @@ class F1Car:
         cmds.sets(body, edit=True, forceElement=shading_group)
 
     def random_color(self, material):
-        color = [random.random(), random.random(), random.random()]
-        cmds.setAttr(material + ".color", *color, type="double3")
+        color = [random.random() for i in range(3)]
+        cmds.setAttr(
+            material + ".color",
+            *color,
+            type="double3"
+        )
+        cmds.refresh(force=True)
 
     def change_body_color(self):
-        selection = cmds.ls(selection=True, long=False)
+        selection = cmds.ls(selection=True, long=True) or []
         if not selection:
             cmds.warning("Select a car body first.")
             return
-        body = selection[0].split("|")[-1]
-        if not body.startswith("carBody_"):
-            cmds.warning("Please select a car body.")
+        body = selection[0]
+        shapes = cmds.listRelatives(body, shapes=True, fullPath=True) or []
+        if not shapes:
             return
-        number = body.replace("carBody_", "")
-        material = "carMaterial_" + number
-        if cmds.objExists(material):
-            self.random_color(material)
+        sg = cmds.listConnections(shapes[0], type="shadingEngine") or []
+        if not sg:
+            return
+        material = cmds.listConnections(
+            sg[0] + ".surfaceShader",
+            source=True, destination=False
+        ) or []
+        if material:
+            self.random_color(material[0])
 
 
 class F1CarGeneratorGUI(QtWidgets.QDialog):
@@ -238,12 +248,24 @@ class F1CarGeneratorGUI(QtWidgets.QDialog):
         self.f1_generator.width = self.width_dspnbx.value()
         self.f1_generator.height = self.height_dspnbx.value()
         self.f1_generator.wing_width = self.wing_dspnbx.value()
-        self.f1_generator.wheel_radius = (
-            self.wheel_slider.value() / 100
-        )
+        self.f1_generator.wheel_radius = self.wheel_slider.value() / 100
         self.f1_generator.grp_name = self.get_group_name()
         self.f1_generator.create()
 
     @QtCore.Slot()
     def randomize_color(self):
-        self.f1_generator.change_body_color()
+        print("BUTTON FUNCTION STARTED")
+        body = cmds.ls(selection=True, long=True)[0]
+        shape = cmds.listRelatives(body, shapes=True, fullPath=True)[0]
+        sg = cmds.listConnections(shape, type="shadingEngine")[0]
+        material = cmds.listConnections(
+            sg + ".surfaceShader", source=True,
+            destination=False
+        )[0]
+        print("CHANGING MATERIAL:", material)
+        cmds.setAttr(
+            material + ".color",
+            0, 1, 0,
+            type="double3"
+        )
+        print("COLOR CHANGED TO GREEN")
